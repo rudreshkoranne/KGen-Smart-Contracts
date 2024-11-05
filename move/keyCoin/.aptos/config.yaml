@@ -1,0 +1,23 @@
+---
+profiles:
+  buyer:
+    network: Devnet
+    private_key: "0xb370074e787738402bf086b98ab1bdde2a4d060a5c976188f32d56907cdd745f"
+    public_key: "0xf2f59ab2fbb79345e8e2c230c77f7f09a8685b208d53fa10f3c12f2e7d085b0a"
+    account: 11fc9b4c1f2206d0c23e7fdfdfefe365a119801f61171d37a63febfbf71c8a56
+    rest_url: "https://fullnode.devnet.aptoslabs.com"
+    faucet_url: "https://faucet.devnet.aptoslabs.com"
+  default:
+    network: Devnet
+    private_key: "0xa281811d53d538f9077d5700fff380844651530d5ea66edcf448a4da9950baae"
+    public_key: "0x1dcdd9d8659bd142de74edd4c354c5f47c8a44e41624a862516f436918adf6f3"
+    account: ccb1939533c02b8b608f84c3d11a22ccb107b3693deda95abdbd3d014a5218ff
+    rest_url: "https://fullnode.devnet.aptoslabs.com"
+    faucet_url: "https://faucet.devnet.aptoslabs.com"
+  receiver:
+    network: Devnet
+    private_key: "0x054458f06cd52d62010c56eefb228f39d275fd7cda3023f4e59f26a5c529b920"
+    public_key: "0x61b7e42a03744053cd859734591bc1bdb407b2f85df5982ba1a7fee997476669"
+    account: 4356e799662fe03321974505f70f3df05a851996b98e33db6009bccccb9f0ece
+    rest_url: "https://fullnode.devnet.aptoslabs.com"
+    faucet_url: "https://faucet.devnet.aptoslabs.com"

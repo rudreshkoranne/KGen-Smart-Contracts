@@ -1,0 +1,15 @@
+[package]
+name = "key_coin"
+version = "1.0.0"
+authors = []
+
+[addresses]
+KEYCoin="ccb1939533c02b8b608f84c3d11a22ccb107b3693deda95abdbd3d014a5218ff"
+[dev-addresses]
+
+[dependencies.AptosFramework]
+git = "https://github.com/aptos-labs/aptos-core.git"
+rev = "mainnet"
+subdir = "aptos-move/framework/aptos-framework"
+
+[dev-dependencies]
