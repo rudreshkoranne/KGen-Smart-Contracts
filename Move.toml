@@ -4,6 +4,7 @@ version = "1.0.0"
 authors = []
 
 [addresses]
+KGen = "0x123"
 
 [dev-addresses]
 
@@ -11,5 +12,15 @@ authors = []
 git = "https://github.com/aptos-labs/aptos-core.git"
 rev = "mainnet"
 subdir = "aptos-move/framework/aptos-framework"
+
+[dependencies.AptosToken]
+git = "https://github.com/aptos-labs/aptos-core.git"
+rev = "mainnet"
+subdir = "aptos-move/framework/aptos-token"
+
+[dependencies.AptosTokenObjects]
+git = 'https://github.com/aptos-labs/aptos-core.git'
+rev = 'mainnet'
+subdir = 'aptos-move/framework/aptos-token-objects'
 
 [dev-dependencies]

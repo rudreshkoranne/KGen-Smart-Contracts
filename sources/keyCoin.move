@@ -4,7 +4,7 @@ module KGen::key_coin {
     use aptos_framework::primary_fungible_store;
     use std::error;
     use std::signer;
-    use std::string::{Self,utf8};
+    use std::string::{utf8};
     use std::option;
 
     // use KGen::oracle_management;
@@ -26,16 +26,18 @@ module KGen::key_coin {
     struct ManagedFungibleAsset has key {
         mint_ref: MintRef,
         transfer_ref: TransferRef,
-        burn_ref: BurnRef,
+        burn_ref: BurnRef
     }
 
-    struct A has key { amount: u64 }
+    struct A has key {
+        amount: u64
+    }
 
     #[resource_group_member(group = aptos_framework::object::ObjectGroup)]
     /// Global state to pause the KGen.
     struct State has key {
         paused: bool,
-        key_limit: u64,
+        key_limit: u64
     }
 
     #[event]
@@ -43,7 +45,7 @@ module KGen::key_coin {
     struct KeyMint has drop, store {
         sender: address,
         receiver: address,
-        amount: u64,
+        amount: u64
     }
 
     /// Initialize the module and metadata object and store the refs.
@@ -57,7 +59,7 @@ module KGen::key_coin {
             utf8(ASSET_SYMBOL), /* symbol */
             8, /* decimals */
             utf8(b"http://example.com/favicon.ico"), /* icon */
-            utf8(b"http://example.com"), /* project */
+            utf8(b"http://example.com") /* project */
         );
 
         let mint_ref = fungible_asset::generate_mint_ref(constructor_ref);
@@ -86,25 +88,27 @@ module KGen::key_coin {
     public fun key_count(owner: address): u64 {
         let asset = get_metadata();
         primary_fungible_store::balance(owner, asset)
-    }   
+    }
 
     public entry fun mint_keys(admin: &signer, to: address, amount: u64) acquires ManagedFungibleAsset {
         let asset = get_metadata();
         let managed_fungible_asset = authorized_borrow_refs(admin, asset);
         let to_wallet = primary_fungible_store::ensure_primary_store_exists(to, asset);
         let fa = fungible_asset::mint(&managed_fungible_asset.mint_ref, amount);
-        fungible_asset::deposit_with_ref(&managed_fungible_asset.transfer_ref, to_wallet, fa);
+        fungible_asset::deposit_with_ref(
+            &managed_fungible_asset.transfer_ref, to_wallet, fa
+        );
     }
 
-    public entry fun transfer(admin: &signer, from: address, to: address, amount: u64) acquires ManagedFungibleAsset {
+    public entry fun transfer(
+        admin: &signer, from: address, to: address, amount: u64
+    ) acquires ManagedFungibleAsset {
         // validate_not_paused();
         let asset = get_metadata();
         let transfer_ref = &authorized_borrow_refs(admin, asset).transfer_ref;
         let from_wallet = primary_fungible_store::primary_store(from, asset);
         let to_wallet = primary_fungible_store::ensure_primary_store_exists(to, asset);
         let balance = fungible_asset::balance(from_wallet);
-        std::debug::print(&string::utf8(b"Balance from_wallet"));
-        std::debug::print(&balance);
         assert!((balance >= amount), error::permission_denied(EINSUFFICIENT_BALANCE));
         fungible_asset::transfer_with_ref(transfer_ref, from_wallet, to_wallet, amount);
     }
@@ -120,7 +124,9 @@ module KGen::key_coin {
     //     KGen::oracle_management::staked_key_amount(oracle_address)
     // }
 
-    public entry fun purchase_keys_apt(admin: &signer, buyer: &signer, amount: u64) acquires ManagedFungibleAsset {
+    public entry fun purchase_keys_apt(
+        admin: &signer, buyer: &signer, amount: u64
+    ) acquires ManagedFungibleAsset {
         let buyer_address = signer::address_of(buyer);
         let total_value_of_key = amount * KEY_PRICE_IN_APT;
         mint_keys(admin, buyer_address, total_value_of_key);
@@ -148,7 +154,7 @@ module KGen::key_coin {
             utf8(ASSET_SYMBOL), /* symbol */
             8, /* decimals */
             utf8(b"http://example.com/favicon.ico"), /* icon */
-            utf8(b"http://example.com"), /* project */
+            utf8(b"http://example.com") /* project */
         );
 
         let mint_ref = fungible_asset::generate_mint_ref(constructor_ref);
@@ -168,13 +174,23 @@ module KGen::key_coin {
         set_key_limit(admin, initial_key_limit);
     }
 
-    inline fun authorized_borrow_refs(owner: &signer, asset: Object<Metadata>): &ManagedFungibleAsset acquires ManagedFungibleAsset {
-        assert!(object::is_owner(asset, signer::address_of(owner)), error::permission_denied(ENOT_OWNER));
+    inline fun authorized_borrow_refs(
+        owner: &signer, asset: Object<Metadata>
+    ): &ManagedFungibleAsset acquires ManagedFungibleAsset {
+        assert!(
+            object::is_owner(asset, signer::address_of(owner)),
+            error::permission_denied(ENOT_OWNER)
+        );
         borrow_global<ManagedFungibleAsset>(object::object_address(&asset))
     }
 
-    inline fun authorized_borrow_state(owner: &signer, asset: Object<Metadata>): &mut State acquires State {
-        assert!(object::is_owner(asset, signer::address_of(owner)), error::permission_denied(ENOT_OWNER));
+    inline fun authorized_borrow_state(
+        owner: &signer, asset: Object<Metadata>
+    ): &mut State acquires State {
+        assert!(
+            object::is_owner(asset, signer::address_of(owner)),
+            error::permission_denied(ENOT_OWNER)
+        );
         borrow_global_mut<State>(object::object_address(&asset))
     }
 
@@ -215,9 +231,11 @@ module KGen::key_coin {
         purchase_keys_apt(admin, buyer, amount_to_purchase);
         let asset = get_metadata();
         let
-
         balance = primary_fungible_store::balance(signer::address_of(buyer), asset);
-        assert!(balance == (KEY_PRICE_IN_APT * amount_to_purchase), EINVALID_AMOUNT);
+        assert!(
+            balance == (KEY_PRICE_IN_APT * amount_to_purchase),
+            EINVALID_AMOUNT
+        );
     }
 
     #[test(admin = @KGen)]
@@ -235,8 +253,6 @@ module KGen::key_coin {
     }
 }
 
-
-
 // module KGen::key_coin {
 //     use aptos_framework::fungible_asset::{Self, MintRef, TransferRef, BurnRef, Metadata};
 //     use aptos_framework::object::{Self, Object};
@@ -247,7 +263,7 @@ module KGen::key_coin {
 //     use std::option;
 
 //     // use KGen::oracle_management;
-  
+
 //     /// Only fungible asset metadata owner can make changes.
 //     const ENOT_OWNER: u64 = 1;
 //     const ENOT_PAUSED: u64 = 2;
@@ -260,7 +276,7 @@ module KGen::key_coin {
 
 //     // Constants for your contract
 //     const KEY_PRICE_IN_APT: u64 = 1000000; // Set the price of 1 KEY in APT (example: 1 APT = 1,000,000 micro APT)
-    
+
 //     #[resource_group_member(group = aptos_framework::object::ObjectGroup)]
 //     struct ManagedFungibleAsset has key {
 //         mint_ref: MintRef,

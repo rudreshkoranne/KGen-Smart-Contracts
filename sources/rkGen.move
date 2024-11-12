@@ -18,7 +18,13 @@ module KGen::rkGen_token {
     struct ManagedFungibleAsset has key {
         mint_ref: MintRef,
         transfer_ref: TransferRef,
-        burn_ref: BurnRef,
+        burn_ref: BurnRef
+    }
+
+    #[view]
+    public fun token_count(oracle: address): u64 {
+        let asset = get_metadata();
+        primary_fungible_store::balance(oracle, asset)
     }
 
     /// Initialize the module and metadata object and store the refs.
@@ -33,7 +39,7 @@ module KGen::rkGen_token {
             utf8(ASSET_SYMBOL), /* symbol */
             8, /* decimals */
             utf8(b"http://example.com/favicon.ico"), /* icon */
-            utf8(b"http://example.com"), /* project */
+            utf8(b"http://example.com") /* project */
         );
 
         let mint_ref = fungible_asset::generate_mint_ref(constructor_ref);
@@ -58,7 +64,7 @@ module KGen::rkGen_token {
             utf8(ASSET_SYMBOL), /* symbol */
             8, /* decimals */
             utf8(b"http://example.com/favicon.ico"), /* icon */
-            utf8(b"http://example.com"), /* project */
+            utf8(b"http://example.com") /* project */
         );
 
         let mint_ref = fungible_asset::generate_mint_ref(constructor_ref);
@@ -78,15 +84,21 @@ module KGen::rkGen_token {
         object::address_to_object<Metadata>(asset_address)
     }
 
-    public entry fun mint_rkGen_token(admin: &signer, to: address, amount: u64) acquires ManagedFungibleAsset {
+    public entry fun mint_rkGen_token(
+        admin: &signer, to: address, amount: u64
+    ) acquires ManagedFungibleAsset {
         let asset = get_metadata();
         let managed_fungible_asset = authorized_borrow_refs(admin, asset);
         let to_wallet = primary_fungible_store::ensure_primary_store_exists(to, asset);
         let fa = fungible_asset::mint(&managed_fungible_asset.mint_ref, amount);
-        fungible_asset::deposit_with_ref(&managed_fungible_asset.transfer_ref, to_wallet, fa);
+        fungible_asset::deposit_with_ref(
+            &managed_fungible_asset.transfer_ref, to_wallet, fa
+        );
     }
 
-    public entry fun transfer(admin: &signer, from: address, to: address, amount: u64) acquires ManagedFungibleAsset {
+    public entry fun transfer(
+        admin: &signer, from: address, to: address, amount: u64
+    ) acquires ManagedFungibleAsset {
         let asset = get_metadata();
         let transfer_ref = &authorized_borrow_refs(admin, asset).transfer_ref;
         let from_wallet = primary_fungible_store::primary_store(from, asset);
@@ -105,10 +117,12 @@ module KGen::rkGen_token {
     }
 
     inline fun authorized_borrow_refs(
-        owner: &signer,
-        asset: Object<Metadata>
+        owner: &signer, asset: Object<Metadata>
     ): &ManagedFungibleAsset acquires ManagedFungibleAsset {
-        assert!(object::is_owner(asset, signer::address_of(owner)), error::permission_denied(E_NOT_OWNER));
+        assert!(
+            object::is_owner(asset, signer::address_of(owner)),
+            error::permission_denied(E_NOT_OWNER)
+        );
         borrow_global<ManagedFungibleAsset>(object::object_address(&asset))
     }
 
@@ -116,8 +130,8 @@ module KGen::rkGen_token {
         owner == @KGen
     }
 
-    #[test(admin = @KGen, oracle1=@0x1)]
-    public fun test_basic_flow(admin: &signer, oracle1:address) acquires ManagedFungibleAsset {
+    #[test(admin = @KGen, oracle1 = @0x1)]
+    public fun test_basic_flow(admin: &signer, oracle1: address) acquires ManagedFungibleAsset {
         init_module(admin);
         mint_rkGen_token(admin, oracle1, 100);
         let asset = get_metadata();
@@ -126,8 +140,10 @@ module KGen::rkGen_token {
         assert!(primary_fungible_store::balance(oracle1, asset) == 50, 4);
     }
 
-    #[test(admin=@KGen, addr1=@0x1, addr2=@0x2)] 
-    public fun test_transfer(admin:&signer, addr1:address, addr2:address) acquires ManagedFungibleAsset{
+    #[test(admin = @KGen, addr1 = @0x1, addr2 = @0x2)]
+    public fun test_transfer(
+        admin: &signer, addr1: address, addr2: address
+    ) acquires ManagedFungibleAsset {
         init_module(admin);
         mint_rkGen_token(admin, addr1, 100);
         let asset = get_metadata();
@@ -137,41 +153,10 @@ module KGen::rkGen_token {
         assert!(primary_fungible_store::balance(addr1, asset) == 50, 4);
         assert!(primary_fungible_store::balance(addr2, asset) == 50, 4);
     }
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // module KGen::rkGen_token {
-    
-    
+
 //     use aptos_framework::fungible_asset::{Self,MintRef, TransferRef, BurnRef, Metadata};
 //     use aptos_framework::object::{Self, Object};
 //     use aptos_framework::primary_fungible_store;
@@ -179,7 +164,6 @@ module KGen::rkGen_token {
 //     use std::signer;
 //     use std::string::utf8;
 //     use std::option;
-  
 
 //     //  Error Codes
 //     const E_NOT_OWNER: u64 = 1;
@@ -196,7 +180,6 @@ module KGen::rkGen_token {
 //         transfer_ref: TransferRef,
 //         burn_ref: BurnRef,
 //     }
-
 
 // /// Initialize  the module and metadata object and store the refs.
 // entry fun init_module(admin: &signer) {
@@ -224,9 +207,8 @@ module KGen::rkGen_token {
 //             &metadata_object_signer,
 //             ManagedFungibleAsset { mint_ref, transfer_ref, burn_ref }
 //         );
-       
-//     }
 
+//     }
 
 //  #[view]
 //   /// Return the address of the managed fungible asset that's created when this module is deployed.
@@ -235,8 +217,6 @@ module KGen::rkGen_token {
 //         object::address_to_object<Metadata>(asset_address)
 //     }
 
-
-
 //   public entry fun mint_rkGen_token(admin: &signer, to: address, amount: u64) acquires ManagedFungibleAsset {
 //         let asset = get_metadata();
 //         let managed_fungible_asset = authorized_borrow_refs(admin, asset);
@@ -244,7 +224,6 @@ module KGen::rkGen_token {
 //         let fa = fungible_asset::mint(&managed_fungible_asset.mint_ref, amount);
 //         fungible_asset::deposit_with_ref(&managed_fungible_asset.transfer_ref, to_wallet, fa);
 //     }
-
 
 //    /// Transfer as the owner of metadata object ignoring field.
 //       public entry fun transfer(admin: &signer, from: address, to: address, amount: u64) acquires ManagedFungibleAsset {
@@ -259,7 +238,6 @@ module KGen::rkGen_token {
 //           fungible_asset::transfer_with_ref(transfer_ref, from_wallet, to_wallet, amount);
 //     }
 
-
 //    /// Burn fungible assets as the owner of metadata object.
 //     public entry fun burn(admin: &signer, from: address, amount: u64) acquires ManagedFungibleAsset {
 //         let asset = get_metadata();
@@ -267,7 +245,6 @@ module KGen::rkGen_token {
 //         let from_wallet = primary_fungible_store::primary_store(from, asset);
 //         fungible_asset::burn_from(burn_ref, from_wallet, amount);
 //     }
-
 
 //   /// Borrow the immutable reference of the refs of `metadata`.
 //     /// This validates that the signer is the metadata object's owner.
@@ -278,7 +255,6 @@ module KGen::rkGen_token {
 //            assert!(object::is_owner(asset, signer::address_of(owner)), error::permission_denied(ENOT_OWNER));
 //            borrow_global<ManagedFungibleAsset>(object::object_address(&asset))
 //           }
-
 
 //  // to check if the address is of admin
 //   inline fun is_owner(owner: address) : bool{
@@ -295,7 +271,7 @@ module KGen::rkGen_token {
 //         mint_rkGen_token(admin,admin_address,100);
 //         let asset = get_metadata();
 //         assert!(primary_fungible_store::balance(admin_address, asset) == 100, 4);
-       
+
 //     }
 
 // }

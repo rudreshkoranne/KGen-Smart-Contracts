@@ -12,7 +12,6 @@ module KGen::poa_nft {
     const ETOKEN_DOES_NOT_EXIST: u64 = 1;
     const ENOT_CREATOR: u64 = 2;
 
-     
     /// The ambassador token collection name
     const COLLECTION_NAME: vector<u8> = b"KGen NFT Collection";
     /// The ambassador token collection description
@@ -26,46 +25,38 @@ module KGen::poa_nft {
         mutator_ref: token::MutatorRef,
         burn_ref: token::BurnRef,
         property_mutator_ref: property_map::MutatorRef,
-        base_uri: String,
+        base_uri: String
     }
 
     #[view]
     public fun view_token(token_name: String): Object<KGenToken> {
         let collection_name = string::utf8(COLLECTION_NAME);
-        let token_address = token::create_token_address(
-            &@KGen,
-            &collection_name,
-            &token_name
-        );
+        let token_address =
+            token::create_token_address(&@KGen, &collection_name, &token_name);
         let token = object::address_to_object<KGenToken>(token_address);
-
-        std::debug::print(&object::owner(token));
 
         token
     }
 
     #[view]
-    public fun has_nft(owner: address, token_name: String): bool {
-        std::debug::print(&token_name);
-        let token_name2 = string::utf8(b"KGen Token #1");
-        std::debug::print(&token_name2);
+    public fun view_token_owner_address(token_name: String): address {
         let collection_name = string::utf8(COLLECTION_NAME);
-        let token_address = token::create_token_address(
-            &owner,
-            &collection_name,
-            &token_name
-        );
+        let token_address =
+            token::create_token_address(&@KGen, &collection_name, &token_name);
+        let token = object::address_to_object<KGenToken>(token_address);
 
-        std::debug::print(&token_address);
+        object::owner(token)
+    }
+
+    #[view]
+    public fun has_nft(owner: address, token_name: String): bool {
+        let collection_name = string::utf8(COLLECTION_NAME);
+        let token_address =
+            token::create_token_address(&owner, &collection_name, &token_name);
+
         let token = object::address_to_object<KGenToken>(token_address);
         let token_addr = object::object_address(&token);
         exists<KGenToken>(token_addr)
-        // Asserts that the token exists before burning.
-        // if (exists<KGenToken>(token_addr)) {
-        //     return true 
-        // };
-
-        // false
     }
 
     fun init_module(sender: &signer) {
@@ -84,7 +75,7 @@ module KGen::poa_nft {
             description,
             name,
             option::none(),
-            uri,
+            uri
         );
     }
 
@@ -93,9 +84,16 @@ module KGen::poa_nft {
         description: String,
         name: String,
         base_uri: String,
-        soul_bound_to: address,
+        soul_bound_to: address
     ) {
-        mint_poa_nft_impl(creator, description, name, base_uri, soul_bound_to, false);
+        mint_poa_nft_impl(
+            creator,
+            description,
+            name,
+            base_uri,
+            soul_bound_to,
+            false
+        );
     }
 
     public entry fun mint_numbered_poa_nft(
@@ -103,11 +101,17 @@ module KGen::poa_nft {
         description: String,
         name: String,
         base_uri: String,
-        soul_bound_to: address,
+        soul_bound_to: address
     ) {
-        mint_poa_nft_impl(creator, description, name, base_uri, soul_bound_to, true);
+        mint_poa_nft_impl(
+            creator,
+            description,
+            name,
+            base_uri,
+            soul_bound_to,
+            true
+        );
     }
-
 
     fun mint_poa_nft_impl(
         creator: &signer,
@@ -115,7 +119,7 @@ module KGen::poa_nft {
         name: String,
         base_uri: String,
         soul_bound_to: address,
-        numbered: bool,
+        numbered: bool
     ) {
         // The collection name is used to locate the collection object and to create a new token object.
         let collection = string::utf8(COLLECTION_NAME);
@@ -123,26 +127,27 @@ module KGen::poa_nft {
         // is used to generate the refs of the token.
         let uri = base_uri;
         string::append(&mut uri, string::utf8(b"RANK_BRONZE"));
-        let constructor_ref = if (numbered) {
-            token::create_numbered_token(
-                creator,
-                collection,
-                description,
-                name,
-                string::utf8(b""),
-                option::none(),
-                uri,
-            )
-        } else {
-            token::create_named_token(
-                creator,
-                collection,
-                description,
-                name,
-                option::none(),
-                uri,
-            )
-        };
+        let constructor_ref =
+            if (numbered) {
+                token::create_numbered_token(
+                    creator,
+                    collection,
+                    description,
+                    name,
+                    string::utf8(b""),
+                    option::none(),
+                    uri
+                )
+            } else {
+                token::create_named_token(
+                    creator,
+                    collection,
+                    description,
+                    name,
+                    option::none(),
+                    uri
+                )
+            };
 
         // Generates the object signer and the refs. The object signer is used to publish a resource
         // (e.g., AmbassadorLevel) under the token object address. The refs are used to manage the token.
@@ -183,43 +188,35 @@ module KGen::poa_nft {
     public entry fun burn(creator: &signer, token_name: String) acquires KGenToken {
 
         let collection_name = string::utf8(COLLECTION_NAME);
-        let token_address = token::create_token_address(
-            &@KGen,
-            &collection_name,
-            &token_name
-        );
+        let token_address =
+            token::create_token_address(&@KGen, &collection_name, &token_name);
         let token = object::address_to_object<KGenToken>(token_address);
 
         authorize_creator(creator, &token);
         let poa_nft_token = move_from<KGenToken>(object::object_address(&token));
-        let KGenToken {
-            mutator_ref: _,
-            burn_ref,
-            property_mutator_ref,
-            base_uri: _
-        } = poa_nft_token;
+        let KGenToken { mutator_ref: _, burn_ref, property_mutator_ref, base_uri: _ } =
+            poa_nft_token;
 
         property_map::burn(property_mutator_ref);
         token::burn(burn_ref);
     }
 
-
-    inline fun authorize_creator<T: key>(creator: &signer, token: &Object<T>) {
+    inline fun authorize_creator<T: key>(
+        creator: &signer, token: &Object<T>
+    ) {
         let token_address = object::object_address(token);
         assert!(
             exists<T>(token_address),
-            error::not_found(ETOKEN_DOES_NOT_EXIST),
+            error::not_found(ETOKEN_DOES_NOT_EXIST)
         );
         assert!(
             token::creator(*token) == signer::address_of(creator),
-            error::permission_denied(ENOT_CREATOR),
+            error::permission_denied(ENOT_CREATOR)
         );
     }
 
-
-    #[test(owner=@KGen, oracle1=@0x1)]
+    #[test(owner = @KGen, oracle1 = @0x1)]
     fun test_mint_burn_poa_nft(owner: &signer, oracle1: &signer) acquires KGenToken {
-        
         create_collection(owner);
 
         let token_name = string::utf8(b"KGen Token #1");
@@ -232,19 +229,20 @@ module KGen::poa_nft {
             token_description,
             token_name,
             token_uri,
-            user1_addr,
+            user1_addr
         );
         let collection_name = string::utf8(COLLECTION_NAME);
-        let token_address = token::create_token_address(
-            &signer::address_of(owner),
-            &collection_name,
-            &token_name
-        );
+        let token_address =
+            token::create_token_address(
+                &signer::address_of(owner),
+                &collection_name,
+                &token_name
+            );
         let token = object::address_to_object<KGenToken>(token_address);
         // Asserts that the owner of the token is User1.
         assert!(object::owner(token) == user1_addr, 1);
 
-         // Creator burns the token.
+        // Creator burns the token.
         let token_addr = object::object_address(&token);
         std::debug::print(&view_token(token_name));
         // Asserts that the token exists before burning.
@@ -254,5 +252,4 @@ module KGen::poa_nft {
         // Asserts that the token does not exist after burning.
         assert!(!exists<KGenToken>(token_addr), 7);
     }
-
 }
